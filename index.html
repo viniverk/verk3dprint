@@ -1,1 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Orçador 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <h2>Orçador de Impressão 3D</h2>
+    <input type="text" id="nomeCliente" placeholder="Nome do Cliente">
+    <input type="number" id="peso" placeholder="Peso (g)">
+    <input type="number" id="tempo" placeholder="Tempo (h)">
+    <input type="number" id="custoHora" placeholder="Valor/Hora Máquina">
+    <button onclick="gerarOrcamento()">Gerar PDF</button>
 
+    <script>
+        function gerarOrcamento() {
+            // Lógica de cálculo conforme planejado [cite: 6, 7, 8]
+            const custoFilamento = document.getElementById('peso').value * 0.1; // Exemplo de custo/g
+            const custoTempo = document.getElementById('tempo').value * document.getElementById('custoHora').value;
+            const total = (custoFilamento + custoTempo) * 1.3; // Margem de 30%
+
+            // Geração do PDF [cite: 17]
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Orcamento: " + document.getElementById('nomeCliente').value, 10, 10);
+            doc.text("Valor Final: R$ " + total.toFixed(2), 10, 20);
+            doc.save("orcamento.pdf");
+        }
+    </script>
+</body>
+</html>
