@@ -1,57 +1,39 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <title>Verk3D - Orçador</title>
-</head>
-<body class="bg-gray-100 p-6">
-    <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Orçador 3D</h1>
-        
-        <div class="grid grid-cols-2 gap-4">
-            <input type="text" id="cliente" placeholder="Nome do Cliente" class="col-span-2 p-3 border rounded-lg">
-            <input type="number" id="peso" placeholder="Peso (g)" class="p-3 border rounded-lg">
-            <input type="number" id="tempo" placeholder="Tempo (h)" class="p-3 border rounded-lg">
-        </div>
-        <button onclick="gerarEsalvar()" class="w-full mt-6 bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700">Gerar PDF e Salvar</button>
-        
-        <div class="mt-10">
-            <h2 class="text-lg font-semibold mb-3">Histórico de Orçamentos</h2>
-            <div id="historico" class="space-y-2"></div>
-        </div>
-    </div>
+function gerarEsalvar() {
+    // Entradas do usuário
+    const cliente = document.getElementById('cliente').value;
+    const peso = parseFloat(document.getElementById('peso').value);
+    const tempo = parseFloat(document.getElementById('tempo').value);
+    
+    // Parâmetros do seu negócio (você pode deixar fixos ou criar inputs no HTML)
+    const custoPorGrama = 0.10; // R$ 100 por kg / 1000g
+    const valorHoraMaquina = 5.00; // Defina aqui o seu custo/hora (energia + desgaste)
+    const margemLucro = 0.50; // 50% de margem sobre o custo total
 
-    <script>
-        // Carrega o histórico ao abrir a página
-        document.addEventListener('DOMContentLoaded', exibirHistorico);
+    // Cálculos
+    const custoMaterial = peso * custoPorGrama;
+    const custoOperacao = tempo * valorHoraMaquina;
+    const custoTotal = custoMaterial + custoOperacao;
+    const valorFinal = custoTotal * (1 + margemLucro);
 
-        function gerarEsalvar() {
-            const cliente = document.getElementById('cliente').value;
-            const valor = (Math.random() * 100).toFixed(2); // Exemplo de cálculo
+    // Salvar no LocalStorage (Histórico)
+    const orcamento = { 
+        cliente, 
+        valor: valorFinal.toFixed(2), 
+        data: new Date().toLocaleDateString() 
+    };
+    
+    const lista = JSON.parse(localStorage.getItem('orcamentos') || '[]');
+    lista.push(orcamento);
+    localStorage.setItem('orcamentos', JSON.stringify(lista));
 
-            // Salvar no LocalStorage
-            const orcamento = { cliente, valor, data: new Date().toLocaleDateString() };
-            const lista = JSON.parse(localStorage.getItem('orcamentos') || '[]');
-            lista.push(orcamento);
-            localStorage.setItem('orcamentos', JSON.stringify(lista));
+    // Gerar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Orcamento: " + cliente, 10, 20);
+    doc.setFontSize(14);
+    doc.text("Valor Final: R$ " + valorFinal.toFixed(2), 10, 40);
+    doc.save("orcamento_" + cliente + ".pdf");
 
-            // Gerar PDF (Lógica simplificada conforme discutido anteriormente [cite: 17, 37])
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text(`Orcamento para: ${cliente}`, 10, 10);
-            doc.text(`Valor Final: R$ ${valor}`, 10, 20);
-            doc.save("orcamento.pdf");
-
-            exibirHistorico();
-        }
-
-        function exibirHistorico() {
-            const lista = JSON.parse(localStorage.getItem('orcamentos') || '[]');
-            const div = document.getElementById('historico');
-            div.innerHTML = lista.map(o => `<div class='p-3 border-b text-sm'>${o.data} - ${o.cliente}: R$ ${o.valor}</div>`).join('');
-        }
-    </script>
-</body>
-</html>
+    exibirHistorico();
+}
